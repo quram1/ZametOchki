@@ -18,6 +18,7 @@ let currentNoteId = notes.length > 0 ? notes[0].id : null;
 let currentFolderId = null;
 let searchQuery = '';
 let selectedTag = 'all';
+window.currentNoteId = currentNoteId;
 
 // ====== ДЕЛАЕМ ФУНКЦИИ ДОСТУПНЫМИ ГЛОБАЛЬНО ======
 window.getCurrentNote = getCurrentNote;

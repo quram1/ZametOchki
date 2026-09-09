@@ -1,6 +1,18 @@
 import { getNote, updateNote } from './notes.js';
 import { showToast } from './utils.js';
 
+// Получаем ID текущей заметки из глобальной переменной
+function getCurrentNoteId() {
+    // currentNoteId хранится в app.js как глобальная переменная
+    return window.currentNoteId || null;
+}
+
+function getCurrentNote() {
+    const id = getCurrentNoteId();
+    if (id === null) return null;
+    return getNote(id);
+}
+
 // ====== ФУНКЦИЯ ИЗМЕНЕНИЯ РАЗМЕРА ======
 export function startResize(e, element, data) {
     e.stopPropagation();
@@ -71,7 +83,7 @@ export function renderPinnedImages(note) {
         removeBtn.textContent = '✕';
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const note = window.getCurrentNote ? window.getCurrentNote() : null;
+            const note = getCurrentNote();
             if (note && note.images) {
                 note.images.splice(index, 1);
                 if (window.saveNotes) window.saveNotes();
@@ -174,7 +186,7 @@ export function renderPinnedVideos(note) {
         removeBtn.textContent = '✕';
         removeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const note = window.getCurrentNote ? window.getCurrentNote() : null;
+            const note = getCurrentNote();
             if (note && note.videos) {
                 note.videos.splice(index, 1);
                 if (window.saveNotes) window.saveNotes();
@@ -253,7 +265,7 @@ export function initMediaButtons() {
 
     if (imageBtn) {
         imageBtn.addEventListener('click', () => {
-            const note = window.getCurrentNote ? window.getCurrentNote() : null;
+            const note = getCurrentNote();
             if (!note) {
                 showToast('Сначала выберите заметку', 'error');
                 return;
@@ -299,7 +311,7 @@ export function initMediaButtons() {
 
     if (videoBtn) {
         videoBtn.addEventListener('click', () => {
-            const note = window.getCurrentNote ? window.getCurrentNote() : null;
+            const note = getCurrentNote();
             if (!note) {
                 showToast('Сначала выберите заметку', 'error');
                 return;
