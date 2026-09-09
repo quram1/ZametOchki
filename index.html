@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЗаметОчки</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+</head>
+<body>
+    <div id="app">
+        <!-- Боковая панель -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">📝 ЗаметОчки  👓</div>
+                <div class="header-actions">
+                    <button class="new-note-btn" id="newNoteBtn" title="Новая заметка (Ctrl+N)">+</button>
+                </div>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="searchInput" placeholder="Поиск заметок...">
+                <div class="search-filters" id="searchFilters">
+                    <div class="custom-select" id="tagFilter">
+                        <div class="selected" id="tagFilterSelected">📋 Все теги</div>
+                        <div class="options" id="tagFilterOptions"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Папки -->
+            <div class="folders-section">
+                <div class="folders-header">
+                    <span>📁 Папки</span>
+                    <button class="add-folder-btn" id="addFolderBtn" title="Новая папка">+</button>
+                </div>
+                <div class="folders-list" id="foldersList"></div>
+            </div>
+            <div class="notes-list" id="notesList"></div>
+            <div class="sidebar-footer">
+                <div class="stats" id="stats">0 заметок</div>
+                <div class="theme-toggle" id="themeToggle">
+                    <button data-theme="light">☀️ Светлая</button>
+                    <button data-theme="dark">🌙 Тёмная</button>
+                    <button data-theme="forest">🌲 Лес</button>
+                    <button data-theme="ocean">🌊 Океан</button>
+                    <button data-theme="sunset">🌅 Закат</button>
+                    <button data-theme="custom" id="customThemeBtn">🎨 Своя</button>
+                </div>
+                <div class="theme-settings-toggle">
+                    <button class="toggle-btn" id="themeSettingsToggle">⚙️ Настройки темы</button>
+                    <div class="theme-settings-panel" id="themeSettingsPanel">
+                        <label>Фон страницы</label>
+                        <input type="color" id="customBodyBg" value="#0a0a1a">
+                        <label>Основной фон</label>
+                        <input type="color" id="customBgPrimary" value="#1a1a2e">
+                        <label>Вторичный фон</label>
+                        <input type="color" id="customBgSecondary" value="#16213e">
+                        <label>Цвет текста</label>
+                        <input type="color" id="customTextPrimary" value="#e8e8f0">
+                        <label>Акцентный цвет</label>
+                        <input type="color" id="customAccent" value="#7c6cf0">
+                        <label>Шрифт</label>
+                        <select id="customFont">
+                            <option value="Inter, system-ui, sans-serif">Inter (по умолчанию)</option>
+                            <option value="'Playfair Display', serif">Playfair Display</option>
+                            <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                        </select>
+                        <button class="apply-btn" id="applyCustomTheme">Применить тему</button>
+                        <button class="apply-btn" style="margin-top:6px;background:var(--danger);" id="resetCustomTheme">Сбросить</button>
+                    </div>
+                </div>
+                <div class="export-import">
+                    <button class="export-btn" id="exportBtn">📤 Экспорт</button>
+                    <button class="import-btn" id="importBtn">📥 Импорт</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основная область -->
+        <div class="main-area">
+            <div class="main-header">
+                <input class="note-title-input" id="noteTitleInput" placeholder="Название заметки..." maxlength="100">
+                <div class="actions">
+                    <button class="pin-btn" id="pinBtn">📌 Закрепить</button>
+                    <button class="reminder-btn" id="reminderBtn">⏰ Напомнить</button>
+                    <button class="image-btn" id="imageBtn">🖼️ Фото</button>
+                    <button class="video-btn" id="videoBtn">🎬 Видео</button>
+                    <button class="delete-btn" id="deleteNoteBtn">🗑️ Удалить</button>
+                </div>
+            </div>
+            <div class="editor-area" id="editorArea">
+                <div class="note-content-wrapper" id="noteContentWrapper">
+                    <!-- Панель инструментов -->
+                    <div class="toolbar" id="toolbar">
+                        <button class="toolbar-btn" data-action="bold" title="Жирный (Ctrl+B)"><b>B</b></button>
+                        <button class="toolbar-btn" data-action="italic" title="Курсив (Ctrl+I)"><i>I</i></button>
+                        <button class="toolbar-btn" data-action="underline" title="Подчёркнутый (Ctrl+U)"><u>U</u></button>
+                        <button class="toolbar-btn" data-action="strike" title="Зачёркнутый"><s>S</s></button>
+                        <span class="toolbar-separator"></span>
+                        <button class="toolbar-btn" data-action="h1" title="Заголовок 1">H1</button>
+                        <button class="toolbar-btn" data-action="h2" title="Заголовок 2">H2</button>
+                        <button class="toolbar-btn" data-action="h3" title="Заголовок 3">H3</button>
+                        <span class="toolbar-separator"></span>
+                        <button class="toolbar-btn" data-action="list" title="Список">•</button>
+                        <button class="toolbar-btn" data-action="todo" title="Чек-лист">☑️</button>
+                        <button class="toolbar-btn" data-action="quote" title="Цитата">"</button>
+                        <button class="toolbar-btn" data-action="code" title="Код">&lt;/&gt;</button>
+                        <span class="toolbar-separator"></span>
+                        <button class="toolbar-btn" data-action="clear" title="Очистить форматирование">✕</button>
+                    </div>
+                    
+                    <!-- Редактор (contentEditable) -->
+                    <div id="noteContent" contenteditable="true" 
+                         class="editor-content" 
+                         placeholder="Начните писать заметку..."></div>
+                    
+                    <div id="pinnedImagesContainer"></div>
+                    <div id="pinnedVideosContainer"></div>
+                    <div id="todoContainer"></div>
+                </div>
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <div class="icon">📝</div>
+                    <h3>Нет выбранной заметки</h3>
+                    <p>Выберите заметку из списка слева или создайте новую</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для напоминания -->
+    <div class="modal" id="reminderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⏰ Напоминание</h3>
+                <button class="modal-close" id="reminderModalClose">✕</button>
+            </div>
+            <div class="modal-body">
+                <label>Дата и время</label>
+                <input type="datetime-local" id="reminderDateTime">
+                <div class="reminder-presets">
+                    <button class="preset-btn" data-minutes="15">Через 15 мин</button>
+                    <button class="preset-btn" data-minutes="30">Через 30 мин</button>
+                    <button class="preset-btn" data-minutes="60">Через 1 час</button>
+                    <button class="preset-btn" data-hours="24">Через 1 день</button>
+                </div>
+                <button class="apply-btn" id="setReminderBtn">Установить напоминание</button>
+                <button class="apply-btn" style="margin-top:6px;background:var(--danger);" id="removeReminderBtn">Удалить напоминание</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast уведомления -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Радио виджет -->
+    <div class="radio-widget" id="radioWidget">
+        <div class="drag-handle" id="radioDragHandle">
+            <span>⋯</span>
+            <button class="collapse-btn" id="collapseBtn">−</button>
+        </div>
+        <div class="radio-header">
+            <div class="radio-title">
+                Lo-fi Radio
+                <span class="now-playing" id="nowPlaying">—</span>
+            </div>
+            <div class="radio-controls">
+                <button id="radioPrevBtn">◀</button>
+                <button class="play-btn" id="radioPlayBtn">▶</button>
+                <button id="radioNextBtn">▶</button>
+            </div>
+        </div>
+        <div class="volume-control">
+            <span class="volume-icon">🔊</span>
+            <input type="range" id="radioVolume" min="0" max="100" value="70">
+            <span class="volume-icon" id="volumeLabel">70%</span>
+        </div>
+    </div>
+
+    <!-- Подключаем модули -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

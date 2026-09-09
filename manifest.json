@@ -1,0 +1,13 @@
+{
+    "name": "ЗаметОчки",
+    "short_name": "ЗаметОчки",
+    "description": "Минималистичное приложение для заметок с поддержкой медиа, тегов и напоминаний",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "orientation": "portrait",
+    "categories": ["productivity", "notes", "utilities"],
+    "icons": [
+    ]
+}
