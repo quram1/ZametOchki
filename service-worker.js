@@ -1,6 +1,6 @@
-const CACHE_NAME = 'zametochki-v2';
-const STATIC_CACHE = 'zametochki-static-v2';
-const DYNAMIC_CACHE = 'zametochki-dynamic-v2';
+const CACHE_NAME = 'zametochki-v3';
+const STATIC_CACHE = 'zametochki-static-v3';
+const DYNAMIC_CACHE = 'zametochki-dynamic-v3';
 
 // Файлы для кеширования при установке
 const STATIC_ASSETS = [

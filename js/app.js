@@ -10,7 +10,6 @@ import { showToast, extractTags } from './modules/utils.js';
 import { checkReminders, setReminder, removeReminder } from './modules/reminders.js';
 import { updateToolbarState, initEditor } from './modules/editor.js';
 import { renderPinnedImages, renderPinnedVideos, initMediaButtons } from './modules/media.js';
-import { renderTodoItems } from './modules/todos.js';
 
 // ====== СОСТОЯНИЕ ======
 let notes = getNotes();
@@ -24,7 +23,6 @@ window.currentNoteId = currentNoteId;
 window.getCurrentNote = getCurrentNote;
 window.saveNotes = saveNotes;
 window.renderNotesList = () => renderNotesList(currentNoteId, currentFolderId, searchQuery);
-window.renderTodoItems = renderTodoItems;
 window.renderPinnedImages = renderPinnedImages;
 window.renderPinnedVideos = renderPinnedVideos;
 window.updateCurrentNote = updateCurrentNote;
@@ -107,7 +105,6 @@ window.onFolderDelete = (folderId) => {
 window.onNoteLoaded = (note) => {
     renderPinnedImages(note);
     renderPinnedVideos(note);
-    renderTodoItems(note);
     setTimeout(updateToolbarState, 100);
     updateTagFilterUI(tagFilterSelected, tagFilterOptions);
 };

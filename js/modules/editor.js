@@ -1,7 +1,6 @@
-import { getCurrentNote, updateNote } from './notes.js';
+import { getNote, updateNote } from './notes.js';
 import { showToast } from './utils.js';
 
-// ====== ПАНЕЛЬ ИНСТРУМЕНТОВ ======
 export function updateToolbarState() {
     const editor = document.getElementById('noteContent');
     if (!editor) return;
@@ -22,39 +21,17 @@ export function updateToolbarState() {
         let isActive = false;
         
         switch(action) {
-            case 'bold':
-                isActive = document.queryCommandState('bold');
-                break;
-            case 'italic':
-                isActive = document.queryCommandState('italic');
-                break;
-            case 'underline':
-                isActive = document.queryCommandState('underline');
-                break;
-            case 'strike':
-                isActive = document.queryCommandState('strikeThrough');
-                break;
-            case 'h1':
-                isActive = parent && parent.tagName === 'H1';
-                break;
-            case 'h2':
-                isActive = parent && parent.tagName === 'H2';
-                break;
-            case 'h3':
-                isActive = parent && parent.tagName === 'H3';
-                break;
-            case 'list':
-                isActive = document.queryCommandState('insertUnorderedList');
-                break;
-            case 'todo':
-                isActive = parent && parent.closest('.todo-item') !== null;
-                break;
-            case 'quote':
-                isActive = parent && parent.tagName === 'BLOCKQUOTE';
-                break;
-            case 'code':
-                isActive = parent && parent.tagName === 'CODE';
-                break;
+            case 'bold': isActive = document.queryCommandState('bold'); break;
+            case 'italic': isActive = document.queryCommandState('italic'); break;
+            case 'underline': isActive = document.queryCommandState('underline'); break;
+            case 'strike': isActive = document.queryCommandState('strikeThrough'); break;
+            case 'h1': isActive = parent && parent.tagName === 'H1'; break;
+            case 'h2': isActive = parent && parent.tagName === 'H2'; break;
+            case 'h3': isActive = parent && parent.tagName === 'H3'; break;
+            case 'list': isActive = document.queryCommandState('insertUnorderedList'); break;
+            case 'todo': isActive = parent && parent.closest('.todo-item') !== null; break;
+            case 'quote': isActive = parent && parent.tagName === 'BLOCKQUOTE'; break;
+            case 'code': isActive = parent && parent.tagName === 'CODE'; break;
         }
         
         btn.classList.toggle('active', isActive);
@@ -71,14 +48,25 @@ export function initEditor() {
         }
     });
 
-    // Обработчики кнопок
     document.querySelectorAll('.toolbar-btn').forEach(btn => {
         btn.addEventListener('mousedown', (e) => {
             e.preventDefault();
             const action = btn.dataset.action;
             const editor = document.getElementById('noteContent');
             if (!editor) return;
+            
+            // Сохраняем выделение ДО фокуса
+            const selection = window.getSelection();
+            let savedRange = null;
+            if (selection.rangeCount > 0) {
+                savedRange = selection.getRangeAt(0).cloneRange();
+            }
+            
             editor.focus();
+            if (savedRange) {
+                selection.removeAllRanges();
+                selection.addRange(savedRange);
+            }
             
             if (action === 'clear') {
                 document.execCommand('removeFormat', false, null);
@@ -90,39 +78,38 @@ export function initEditor() {
             }
             
             if (action === 'todo') {
-                // Вставка чек-листа
-                const selection = window.getSelection();
-                if (selection.rangeCount) {
-                    const range = selection.getRangeAt(0);
-                    const selectedText = range.toString() || 'Новая задача';
-                    const todoDiv = document.createElement('div');
-                    todoDiv.className = 'todo-item';
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    const span = document.createElement('span');
-                    span.textContent = selectedText;
-                    todoDiv.appendChild(checkbox);
-                    todoDiv.appendChild(span);
+                // Создаём чек-лист напрямую через DOM
+                const text = savedRange ? savedRange.toString() : '';
+                
+                const todoDiv = document.createElement('div');
+                todoDiv.className = 'todo-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.contentEditable = 'false';
+                
+                const span = document.createElement('span');
+                span.textContent = text || 'Новая задача';
+                span.contentEditable = 'true';
+                
+                todoDiv.appendChild(checkbox);
+                todoDiv.appendChild(span);
+                
+                if (savedRange) {
+                    savedRange.deleteContents();
+                    savedRange.insertNode(todoDiv);
                     
-                    const note = window.getCurrentNote ? window.getCurrentNote() : null;
-                    if (note) {
-                        if (!note.todo_items) note.todo_items = [];
-                        note.todo_items.push({ text: selectedText, checked: false });
-                        note.updated = Date.now();
-                        if (window.saveNotes) window.saveNotes();
-                        if (window.renderTodoItems) window.renderTodoItems(note);
-                        if (window.renderNotesList) window.renderNotesList();
-                        document.execCommand('insertHTML', false, todoDiv.outerHTML);
-                        if (selectedText) {
-                            range.deleteContents();
-                        }
-                        if (window.updateCurrentNote) window.updateCurrentNote();
-                    }
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(span);
+                    newRange.collapse(false);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                } else {
+                    editor.appendChild(todoDiv);
                 }
-                setTimeout(() => {
-                    updateToolbarState();
-                    if (window.updateCurrentNote) window.updateCurrentNote();
-                }, 10);
+                
+                if (window.updateCurrentNote) window.updateCurrentNote();
+                setTimeout(() => updateToolbarState(), 10);
                 return;
             }
             
@@ -139,10 +126,8 @@ export function initEditor() {
                 const isActive = btn.classList.contains('active');
                 document.execCommand('formatBlock', false, isActive ? '<p>' : '<blockquote>');
             } else if (action === 'code') {
-                const selection = window.getSelection();
-                if (selection.rangeCount) {
-                    const range = selection.getRangeAt(0);
-                    const selectedText = range.toString();
+                if (savedRange) {
+                    const selectedText = savedRange.toString();
                     if (selectedText) {
                         document.execCommand('insertHTML', false, `<code>${selectedText}</code>`);
                     } else {
@@ -170,7 +155,19 @@ export function initEditor() {
         });
     });
 
-    // Горячие клавиши
+    // Отслеживаем клики по чекбоксам — зачёркиваем текст
+    editor.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox' && e.target.closest('.todo-item')) {
+            const todoItem = e.target.closest('.todo-item');
+            if (e.target.checked) {
+                todoItem.classList.add('checked');
+            } else {
+                todoItem.classList.remove('checked');
+            }
+            if (window.updateCurrentNote) window.updateCurrentNote();
+        }
+    });
+
     document.addEventListener('keydown', (e) => {
         if (document.activeElement !== editor) return;
         const ctrl = e.ctrlKey || e.metaKey;
