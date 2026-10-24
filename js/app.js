@@ -14,7 +14,7 @@ function loadNotes() {
     } catch (e) {
         console.warn('Ошибка загрузки заметок:', e);
     }
-    return []; 
+    return []; // Начальные заметки удалены
 }
 
 function loadFolders() {
@@ -639,7 +639,6 @@ function renderTodoItems(note) {
     if (!todoContainer) return;
     todoContainer.innerHTML = '';
     
-    // Если задач нет — ничего не показываем (большая кнопка убрана)
     if (!note || !note.todo_items || note.todo_items.length === 0) {
         return;
     }
@@ -1322,21 +1321,38 @@ function renderNotesList() {
                 <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 6px;">Ничего не найдено</h3>
                 <p style="font-size: 13px; color: var(--text-secondary);">Попробуйте изменить фильтры или поиск</p>
             `;
-        } else if (currentFolderId !== null) {
-            const folder = folders.find(f => f.id === currentFolderId);
-            emptyDiv.innerHTML = `
-                <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.4;">📁</div>
-                <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 6px;">Папка "${folder?.name || 'Без названия'}" пуста</h3>
-                <p style="font-size: 13px; color: var(--text-secondary);">Создайте новую заметку или переместите существующую</p>
-                <button onclick="createNewNote()" style="margin-top: 12px; padding: 6px 20px; border: none; border-radius: 8px; background: var(--accent); color: white; cursor: pointer; font-family: inherit; font-size: 13px; transition: all 0.2s ease;">➕ Создать заметку</button>
-            `;
         } else {
+            // Случай: нет заметок или папка пуста
+            const isFolderEmpty = currentFolderId !== null;
+            const folderName = isFolderEmpty ? folders.find(f => f.id === currentFolderId)?.name : '';
+            
             emptyDiv.innerHTML = `
-                <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.4;">📝</div>
-                <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 6px;">Нет заметок</h3>
-                <p style="font-size: 13px; color: var(--text-secondary);">Создайте свою первую заметку</p>
-                <button onclick="createNewNote()" style="margin-top: 12px; padding: 6px 20px; border: none; border-radius: 8px; background: var(--accent); color: white; cursor: pointer; font-family: inherit; font-size: 13px; transition: all 0.2s ease;">➕ Создать заметку</button>
+                <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.4;">${isFolderEmpty ? '📁' : '📝'}</div>
+                <h3 style="font-size: 16px; color: var(--text-primary); margin-bottom: 6px;">
+                    ${isFolderEmpty ? `Папка "${folderName}" пуста` : 'Нет заметок'}
+                </h3>
+                <p style="font-size: 13px; color: var(--text-secondary);">
+                    ${isFolderEmpty ? 'Создайте новую заметку или переместите существующую' : 'Создайте свою первую заметку'}
+                </p>
             `;
+            
+            // Создаём кнопку программно, чтобы она работала
+            const createBtn = document.createElement('button');
+            createBtn.textContent = '➕ Создать заметку';
+            createBtn.style.cssText = `
+                margin-top: 12px;
+                padding: 6px 20px;
+                border: none;
+                border-radius: 8px;
+                background: var(--accent);
+                color: white;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: 13px;
+                transition: all 0.2s ease;
+            `;
+            createBtn.addEventListener('click', createNewNote);
+            emptyDiv.appendChild(createBtn);
         }
         
         notesListEl.appendChild(emptyDiv);
