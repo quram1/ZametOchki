@@ -8,14 +8,13 @@
     <meta name="theme-color" content="#1a1a2e">
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
 </head>
 <body>
     <div id="app">
         <!-- Боковая панель -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo">📝 ЗаметОчки  👓</div>
+                <div class="logo">ЗаметОчки</div>
                 <div class="header-actions">
                     <button class="new-note-btn" id="newNoteBtn" title="Новая заметка (Ctrl+N)">+</button>
                 </div>
@@ -29,6 +28,7 @@
                     </div>
                 </div>
             </div>
+            
             <!-- Папки -->
             <div class="folders-section">
                 <div class="folders-header">
@@ -37,7 +37,9 @@
                 </div>
                 <div class="folders-list" id="foldersList"></div>
             </div>
+
             <div class="notes-list" id="notesList"></div>
+            
             <div class="sidebar-footer">
                 <div class="stats" id="stats">0 заметок</div>
                 <div class="theme-toggle" id="themeToggle">
@@ -118,9 +120,12 @@
                          class="editor-content" 
                          placeholder="Начните писать заметку..."></div>
                     
+                    <!-- Контейнер для чек-листов (ВЫНЕСЕН ИЗ ТЕКСТА) -->
+                    <div id="todoContainer" class="todo-container"></div>
+
+                    <!-- Контейнеры для медиа -->
                     <div id="pinnedImagesContainer"></div>
                     <div id="pinnedVideosContainer"></div>
-                    <div id="todoContainer"></div>
                 </div>
                 <div class="empty-state" id="emptyState" style="display:none;">
                     <div class="icon">📝</div>
@@ -180,7 +185,6 @@
         </div>
     </div>
 
-    <!-- Подключаем модули -->
-    <script type="module" src="js/app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
