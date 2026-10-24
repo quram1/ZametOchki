@@ -1,26 +1,12 @@
-const CACHE_NAME = 'zametochki-v3';
-const STATIC_CACHE = 'zametochki-static-v3';
-const DYNAMIC_CACHE = 'zametochki-dynamic-v3';
-
-// Файлы для кеширования при установке
+const CACHE_NAME = 'zametochki-v4';
+const STATIC_CACHE = 'zametochki-static-v4';
+const DYNAMIC_CACHE = 'zametochki-dynamic-v4';
+    
 const STATIC_ASSETS = [
     './index.html',
     './style.css',
-    './manifest.json',
-    './js/app.js',
-    './js/modules/types.js',
-    './js/modules/storage.js',
-    './js/modules/notes.js',
-    './js/modules/folders.js',
-    './js/modules/ui.js',
-    './js/modules/editor.js',
-    './js/modules/media.js',
-    './js/modules/todos.js',
-    './js/modules/reminders.js',
-    './js/modules/radio.js',
-    './js/modules/theme.js',
-    './js/modules/tags.js',
-    './js/modules/utils.js'
+    './app.js',
+    './manifest.json'
 ];
 
 // ====== УСТАНОВКА ======
@@ -51,8 +37,7 @@ self.addEventListener('activate', (event) => {
                 return Promise.all(
                     cacheNames.map((cacheName) => {
                         if (cacheName !== STATIC_CACHE && 
-                            cacheName !== DYNAMIC_CACHE && 
-                            cacheName !== CACHE_NAME) {
+                            cacheName !== DYNAMIC_CACHE) {
                             console.log('[SW] Удаляем старый кеш:', cacheName);
                             return caches.delete(cacheName);
                         }
@@ -68,119 +53,34 @@ self.addEventListener('activate', (event) => {
 
 // ====== ПЕРЕХВАТ ЗАПРОСОВ ======
 self.addEventListener('fetch', (event) => {
-    const request = event.request;
-    const url = new URL(request.url);
-
-    if (url.origin !== location.origin) {
-        if (request.mode === 'cors') {
-            event.respondWith(fetch(request));
-            return;
-        }
+    // Пропускаем запросы к сторонним ресурсам (например, радио)
+    if (!event.request.url.startsWith(location.origin)) {
         return;
     }
 
     event.respondWith(
-        caches.match(request)
+        caches.match(event.request)
             .then((cachedResponse) => {
                 if (cachedResponse) {
-                    fetch(request)
-                        .then((networkResponse) => {
-                            if (networkResponse && networkResponse.status === 200) {
-                                caches.open(DYNAMIC_CACHE)
-                                    .then((cache) => {
-                                        cache.put(request, networkResponse);
-                                    });
-                            }
-                        })
-                        .catch(() => {});
                     return cachedResponse;
                 }
 
-                return fetch(request)
+                return fetch(event.request)
                     .then((networkResponse) => {
                         if (networkResponse && networkResponse.status === 200) {
                             const responseClone = networkResponse.clone();
                             caches.open(DYNAMIC_CACHE)
                                 .then((cache) => {
-                                    cache.put(request, responseClone);
+                                    cache.put(event.request, responseClone);
                                 });
                         }
                         return networkResponse;
                     })
                     .catch(() => {
-                        if (request.headers.get('accept')?.includes('text/html')) {
+                        if (event.request.headers.get('accept')?.includes('text/html')) {
                             return caches.match('./index.html');
                         }
-                        return new Response('Офлайн-режим', {
-                            status: 503,
-                            statusText: 'Service Unavailable'
-                        });
                     });
             })
     );
-});
-
-// ====== ОБРАБОТКА УВЕДОМЛЕНИЙ ======
-self.addEventListener('push', (event) => {
-    const data = event.data ? event.data.json() : {};
-    
-    const options = {
-        body: data.body || 'У вас есть напоминание!',
-        icon: './assets/icons/icon-192.png',
-        badge: './assets/icons/icon-72.png',
-        vibrate: [200, 100, 200],
-        data: {
-            dateOfArrival: Date.now(),
-            primaryKey: '1'
-        },
-        actions: [
-            {
-                action: 'open',
-                title: 'Открыть заметку'
-            },
-            {
-                action: 'close',
-                title: 'Закрыть'
-            }
-        ]
-    };
-
-    event.waitUntil(
-        self.registration.showNotification(data.title || 'ЗаметОчки', options)
-    );
-});
-
-// ====== ОБРАБОТКА КЛИКА ПО УВЕДОМЛЕНИЮ ======
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-
-    if (event.action === 'close') {
-        return;
-    }
-
-    event.waitUntil(
-        clients.matchAll({
-            type: 'window',
-            includeUncontrolled: true
-        })
-        .then((clientList) => {
-            for (const client of clientList) {
-                if (client.url === '/' && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow('/');
-            }
-        })
-    );
-});
-
-// ====== ОБРАБОТКА ОШИБОК ======
-self.addEventListener('error', (event) => {
-    console.error('[SW] Ошибка:', event.message);
-});
-
-self.addEventListener('unhandledrejection', (event) => {
-    console.error('[SW] Необработанное обещание:', event.reason);
 });
