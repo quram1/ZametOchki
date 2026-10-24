@@ -14,11 +14,7 @@ function loadNotes() {
     } catch (e) {
         console.warn('Ошибка загрузки заметок:', e);
     }
-    return [
-        { id: 1, title: 'Добро пожаловать!', content: 'Это ЗаметОчки — минималистичное приложение для заметок.', pinned: true, created: Date.now() - 3600000, updated: Date.now() - 1800000, images: [], videos: [], folder: null, reminder: null, todo_items: [] },
-        { id: 2, title: 'Идеи для проекта', content: '1. Добавить теги\n2. Экспорт в Markdown\n3. Поддержка изображений\n4. Облачное хранилище\n\n#проект #идеи', pinned: false, created: Date.now() - 7200000, updated: Date.now() - 3600000, images: [], videos: [], folder: null, reminder: null, todo_items: [] },
-        { id: 3, title: 'Список покупок', content: '• Молоко\n• Хлеб\n• Яйца\n• Овощи\n• Фрукты\n\n#покупки', pinned: false, created: Date.now() - 14400000, updated: Date.now() - 7200000, images: [], videos: [], folder: null, reminder: null, todo_items: [] }
-    ];
+    return []; 
 }
 
 function loadFolders() {
@@ -246,17 +242,19 @@ let currentTrackIndex = 0;
 let isCollapsed = false;
 
 const tracks = [
-    { title: 'Lo-fi Chill', url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Arps_1.mp3' },
-    { title: 'Study Beats', url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Arps_2.mp3' },
-    { title: 'Relaxation', url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Arps_3.mp3' },
-    { title: 'Dreamy Lo-fi', url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Chad_Crouch/Arps/Chad_Crouch_-_Arps_4.mp3' }
+    { title: 'flux.fm', url: 'https://streams.fluxfm.de/Chillhop/mp3-128/' },
+    { title: 'laut.fm', url: 'https://stream.laut.fm/lofi' }
 ];
 
 function initRadio() {
     audio = new Audio();
     audio.volume = radioVolume.value / 100;
-    audio.addEventListener('ended', () => { playNext(); });
-    audio.addEventListener('error', () => { playNext(); });
+    audio.addEventListener('error', () => {
+        nowPlaying.textContent = '❌ Ошибка загрузки';
+        radioPlayBtn.textContent = '▶';
+        isPlaying = false;
+        showToast('❌ Не удалось загрузить трек', 'error');
+    });
     loadTrack(currentTrackIndex);
     audio.load();
 }
@@ -268,8 +266,9 @@ function loadTrack(index) {
     nowPlaying.textContent = track.title;
     if (isPlaying) {
         audio.play().catch(() => {
-            nowPlaying.textContent = 'Ошибка загрузки';
-            setTimeout(() => playNext(), 2000);
+            nowPlaying.textContent = '❌ Ошибка загрузки';
+            radioPlayBtn.textContent = '▶';
+            isPlaying = false;
         });
     }
 }
@@ -281,8 +280,10 @@ function togglePlay() {
         radioPlayBtn.textContent = '▶';
     } else {
         audio.play().catch(() => {
-            nowPlaying.textContent = 'Ошибка: проверьте ссылки';
-            setTimeout(() => playNext(), 2000);
+            nowPlaying.textContent = '❌ Ошибка загрузки';
+            radioPlayBtn.textContent = '▶';
+            isPlaying = false;
+            showToast('❌ Не удалось загрузить трек', 'error');
         });
         radioPlayBtn.textContent = '⏸';
     }
@@ -638,12 +639,8 @@ function renderTodoItems(note) {
     if (!todoContainer) return;
     todoContainer.innerHTML = '';
     
+    // Если задач нет — ничего не показываем (большая кнопка убрана)
     if (!note || !note.todo_items || note.todo_items.length === 0) {
-        const addBtn = document.createElement('button');
-        addBtn.className = 'add-todo-btn';
-        addBtn.innerHTML = '➕ Добавить задачу';
-        addBtn.addEventListener('click', () => addNewTodo(note));
-        todoContainer.appendChild(addBtn);
         return;
     }
     
@@ -683,12 +680,6 @@ function renderTodoItems(note) {
         div.appendChild(remove);
         todoContainer.appendChild(div);
     });
-    
-    const addBtn = document.createElement('button');
-    addBtn.className = 'add-todo-btn';
-    addBtn.innerHTML = '➕ Добавить еще';
-    addBtn.addEventListener('click', () => addNewTodo(note));
-    todoContainer.appendChild(addBtn);
 }
 
 function addNewTodo(note) {
